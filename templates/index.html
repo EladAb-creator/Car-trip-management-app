@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול נסיעות ברכב</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info .username {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button.delete {
+            background: #e74c3c;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        button.delete:hover {
+            background: #c0392b;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .payment-summary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .payment-summary h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .payment-item:last-child {
+            border-bottom: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .refueler-badge {
+            background: #f39c12;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+
+        .admin-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+
+        .admin-link {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+
+        .admin-link:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 ניהול נסיעות ברכב</h1>
+            <div class="user-info">
+                <div>
+                    <span class="username">{{ username }}</span>
+                    {% if is_refueler %}
+                    <span class="refueler-badge">⛽ מתדלק</span>
+                    {% endif %}
+                    {% if is_admin %}
+                    <span class="admin-badge">⚙️ מנהל</span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if is_admin %}
+                    <a href="/admin" class="admin-link">ניהול מערכת</a>
+                    {% endif %}
+                    <a href="/logout" class="logout-btn">התנתק</a>
+                </div>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Statistics -->
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>הנסיעות שלי</h3>
+                    <div class="value">{{ "%.1f"|format(user_total_km) }} ק"מ</div>
+                </div>
+                <div class="stat-card">
+                    <h3>סה"כ קילומטראז' (כל הנהגים)</h3>
+                    <div class="value">{{ "%.1f"|format(total_km) }}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>סה"כ עלות תדלוק</h3>
+                    <div class="value">₪{{ "%.2f"|format(total_refueling_cost) }}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>התשלום שלי</h3>
+                    <div class="value">₪{{ "%.2f"|format(user_payments.get(username, 0)) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Summary -->
+        {% if user_payments %}
+        <div class="card payment-summary">
+            <h3>📊 חלוקת תשלומים (כל הנהגים)</h3>
+            {% for user, payment in user_payments.items() %}
+            <div class="payment-item">
+                <span><strong>{{ user }}</strong>{% if user == username %} (אתה){% endif %}</span>
+                <span>₪{{ "%.2f"|format(payment) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Add Trip Form -->
+        <div class="card">
+            <h2>🛣️ הוסף נסיעה</h2>
+            <form method="POST" action="/add_trip">
+                <div class="form-group">
+                    <label for="km">קילומטראז' (ק"מ):</label>
+                    <input type="number" id="km" name="km" step="0.1" min="0.1" required>
+                </div>
+                <button type="submit">הוסף נסיעה</button>
+            </form>
+        </div>
+
+        <!-- My Trips List -->
+        <div class="card">
+            <h2>📋 הנסיעות שלי</h2>
+            {% if user_trips %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>תאריך</th>
+                        <th>קילומטראז' (ק"מ)</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in user_trips|reverse %}
+                    <tr>
+                        <td>{{ trip.date }}</td>
+                        <td>{{ "%.1f"|format(trip.km) }}</td>
+                        <td>
+                            <form method="POST" action="/delete_trip/{{ trip.id }}" style="display: inline;">
+                                <button type="submit" class="delete" onclick="return confirm('האם אתה בטוח שברצונך למחוק את הנסיעה?')">מחק</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">אין נסיעות עדיין. הוסף נסיעה ראשונה!</div>
+            {% endif %}
+        </div>
+
+        <!-- Add Refueling Form (only for refuelers) -->
+        {% if is_refueler %}
+        <div class="card">
+            <h2>⛽ הוסף תדלוק</h2>
+            <form method="POST" action="/add_refueling">
+                <div class="form-group">
+                    <label for="cost">עלות התדלוק (₪):</label>
+                    <input type="number" id="cost" name="cost" step="0.01" min="0.01" required>
+                </div>
+                <button type="submit">הוסף תדלוק</button>
+            </form>
+        </div>
+
+        <!-- Refuelings List (only for refuelers) -->
+        <div class="card">
+            <h2>⛽ תדלוקים</h2>
+            {% if refuelings %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>תאריך</th>
+                        <th>עלות (₪)</th>
+                        <th>הוזן על ידי</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for refueling in refuelings|reverse %}
+                    <tr>
+                        <td>{{ refueling.date }}</td>
+                        <td>₪{{ "%.2f"|format(refueling.cost) }}</td>
+                        <td>{{ refueling.get('added_by', 'לא ידוע') }}</td>
+                        <td>
+                            <form method="POST" action="/delete_refueling/{{ refueling.id }}" style="display: inline;">
+                                <button type="submit" class="delete" onclick="return confirm('האם אתה בטוח שברצונך למחוק את התדלוק?')">מחק</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">אין תדלוקים עדיין</div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

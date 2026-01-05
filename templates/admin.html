@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול מערכת - ניהול נסיעות</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: 600;
+            margin: 2px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button.delete {
+            background: #e74c3c;
+        }
+
+        button.delete:hover {
+            background: #c0392b;
+        }
+
+        button.toggle {
+            background: #f39c12;
+        }
+
+        button.toggle:hover {
+            background: #e67e22;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        .badge-admin {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-refueler {
+            background: #f39c12;
+            color: white;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ ניהול מערכת</h1>
+            <div class="nav-buttons">
+                <a href="/" class="btn">חזרה לדף הבית</a>
+                <a href="/logout" class="btn">התנתק</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Statistics -->
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>סה"כ נהגים</h3>
+                    <div class="value">{{ total_drivers }}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>סה"כ נסיעות</h3>
+                    <div class="value">{{ total_trips }}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>סה"כ תדלוקים</h3>
+                    <div class="value">{{ total_refuelings }}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>סה"כ קילומטראז'</h3>
+                    <div class="value">{{ "%.1f"|format(total_km) }}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>סה"כ עלות תדלוק</h3>
+                    <div class="value">₪{{ "%.2f"|format(total_cost) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drivers Management -->
+        <div class="card">
+            <h2>👥 ניהול נהגים</h2>
+            {% if drivers %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>שם משתמש</th>
+                        <th>תאריך הרשמה</th>
+                        <th>סטטוס</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver in drivers %}
+                    <tr>
+                        <td>{{ driver.username }}</td>
+                        <td>{{ driver.created_at }}</td>
+                        <td>
+                            {% if driver.is_admin %}
+                            <span class="badge badge-admin">מנהל</span>
+                            {% endif %}
+                            {% if driver.is_refueler %}
+                            <span class="badge badge-refueler">מתדלק</span>
+                            {% endif %}
+                            {% if not driver.is_admin and not driver.is_refueler %}
+                            <span>נהג רגיל</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="POST" action="/admin/toggle_refueler/{{ driver.username }}" style="display: inline;">
+                                <button type="submit" class="toggle">
+                                    {{ 'הסר מתדלק' if driver.is_refueler else 'הפוך למתדלק' }}
+                                </button>
+                            </form>
+                            <form method="POST" action="/admin/toggle_admin/{{ driver.username }}" style="display: inline;">
+                                <button type="submit" class="toggle">
+                                    {{ 'הסר מנהל' if driver.is_admin else 'הפוך למנהל' }}
+                                </button>
+                            </form>
+                            <form method="POST" action="/admin/delete_driver/{{ driver.username }}" style="display: inline;" 
+                                  onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את הנהג {{ driver.username }} וכל הנתונים שלו?')">
+                                <button type="submit" class="delete">מחק</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">אין נהגים במערכת</div>
+            {% endif %}
+        </div>
+
+        <!-- All Trips -->
+        <div class="card">
+            <h2>📋 כל הנסיעות</h2>
+            {% if trips %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>תאריך</th>
+                        <th>נהג</th>
+                        <th>קילומטראז' (ק"מ)</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in trips %}
+                    <tr>
+                        <td>{{ trip.date }}</td>
+                        <td>{{ trip.username }}</td>
+                        <td>{{ "%.1f"|format(trip.km) }}</td>
+                        <td>
+                            <form method="POST" action="/admin/delete_trip/{{ trip.id }}" style="display: inline;"
+                                  onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את הנסיעה?')">
+                                <button type="submit" class="delete">מחק</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">אין נסיעות במערכת</div>
+            {% endif %}
+        </div>
+
+        <!-- All Refuelings -->
+        <div class="card">
+            <h2>⛽ כל התדלוקים</h2>
+            {% if refuelings %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>תאריך</th>
+                        <th>עלות (₪)</th>
+                        <th>הוזן על ידי</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for refueling in refuelings %}
+                    <tr>
+                        <td>{{ refueling.date }}</td>
+                        <td>₪{{ "%.2f"|format(refueling.cost) }}</td>
+                        <td>{{ refueling.added_by }}</td>
+                        <td>
+                            <form method="POST" action="/admin/delete_refueling/{{ refueling.id }}" style="display: inline;"
+                                  onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את התדלוק?')">
+                                <button type="submit" class="delete">מחק</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">אין תדלוקים במערכת</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+
